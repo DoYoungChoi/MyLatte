@@ -31,6 +31,9 @@ struct ContentView: View {
         .onDisappear {
             self.viewModel.cancel()
         }
+        .onTapGesture {
+            self.viewModel.change()
+        }
     }
 }
 
@@ -50,16 +53,20 @@ final class ContentViewModel: ObservableObject {
         publisher
             .autoconnect()
             .sink { [weak self] _ in
-                self?.count += 1
-                if self?.count ?? 13 > 12 {
-                    self?.count = 1
-                }
+                self?.change()
             }
             .store(in: &cancellables)
     }
     
     func cancel() {
         self.cancellables.forEach { $0.cancel() }
+    }
+    
+    func change() {
+        self.count += 1
+        if self.count > 12 {
+            self.count = 1
+        }
     }
 }
 
