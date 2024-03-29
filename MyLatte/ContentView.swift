@@ -25,21 +25,29 @@ struct ContentView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: width)
         }
+        .onAppear {
+            self.viewModel.start()
+        }
+        .onDisappear {
+            self.viewModel.cancel()
+        }
     }
 }
 
 final class ContentViewModel: ObservableObject {
+    
     @Published var count: Int
-    var cancellables: Set<AnyCancellable>
+    private let publisher: Timer.TimerPublisher
+    private var cancellables: Set<AnyCancellable>
     
     init() {
         self.count = (1...12).randomElement() ?? 1
+        publisher = Timer.publish(every: 10, on: .main, in: .default)
         self.cancellables = []
-        changeImage()
     }
     
-    func changeImage() {
-        Timer.publish(every: 20, on: .main, in: .default)
+    func start() {
+        publisher
             .autoconnect()
             .sink { [weak self] _ in
                 self?.count += 1
@@ -48,6 +56,10 @@ final class ContentViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+    }
+    
+    func cancel() {
+        self.cancellables.forEach { $0.cancel() }
     }
 }
 
